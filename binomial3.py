@@ -64,7 +64,8 @@ class Option(object):
     
     @abstractmethod
     def setup_parameters(self):
-        raise NotImplementedError("Needs to be implemented")
+        """Setting up parameters depending on whether option is a put or a call and European or American"""
+        raise NotImplementedError("NotImplementedError: Needs to be implemented")
     
 
 class BinomialEuropean(Option):
