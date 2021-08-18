@@ -139,7 +139,7 @@ class BinomialTree(Option):
     
     def init_payoffs_tree(self):
         if self.is_call:
-            return np.maximum(0, self.STs[self.N] - self.K)
+            return np.maximum(0, self.StockTrees[self.N] - self.K)
         else:
             return np.maximum(0, self.K - self.StockTrees[self.N])
     
