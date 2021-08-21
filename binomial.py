@@ -2,71 +2,33 @@ import math
 import numpy as np
 from decimal import Decimal
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Optional, List
 
 
 @dataclass
-class Option:
+class Option(ABC):
     """
-    Stores common attributes of a stock option
+    An Option base class that stores common attributes of a stock option
     """
     S0: int
     K: int
     r: float = 0.05
     T: int = 1
     N: int = 2
+    StockTrees: List[float] = field(init=False, default_factory=list)
     pu: Optional[float] = 0
     pd: Optional[float] = 0
     div: Optional[float] = 0
-    sigma: float
-    is_put: bool = False
-    is_american: bool = False
-    is_call: Optional[bool] = not is_put
-    is_european: Optional[bool] = not is_american
-    # def __init__(
-    #     self,
-    #     S0: int,
-    #     K: int,
-    #     r=0.05,
-    #     T=1,
-    #     N=2,
-    #     pu=0,
-    #     pd=0,
-    #     div=0,
-    #     sigma=0,
-    #     is_put=False,
-    #     is_american=False
-    # ) -> int:
-    #     """
-    #     Initialise the stock option base class.
-    #     Defaults to European calls unless specified.
-        
-    #     Arg:
-    #         S0: Initial stock price
-    #         K: Strike price
-    #         r: Risk-free interest rate
-    #         T: Time to maturity
-    #         N: Number of time steps
-    #         pu: Probability at up state
-    #         pd: Probability at down state
-    #         div: Dividend yield
-    #         is_put: True for a put option, False for a call option
-    #         is_american: True for an American option, False for a European option
-    #     """
-    #     self.S0 = S0
-    #     self.K = K
-    #     self.r = r
-    #     self.T = T
-    #     self.N = max(1, N)
-    #     self.STs = []  # Declare the stock prices tree
-        
-    #     """Optional parameters used by derived classes"""
-    #     self.pu, self.pd = pu, pd
-    #     self.div = div
-    #     self.sigma = sigma
-    #     self.is_call = not is_put
-    #     self.is_european = not is_american
+    sigma: float = 0
+    is_put: bool = field(default=False)
+    is_american: Optional[bool] = field(default=False)
+    is_call: Optional[bool] = field(init=False)
+    is_european: Optional[bool] = field(init=False)
+    
+    def __post_init__(self):
+        self.is_call = not self.is_put
+        self.is_european = not self.is_american
         
     @property
     def dt(self):
@@ -78,6 +40,10 @@ class Option:
         """The discount factor """
         return math.exp(-(self.r - self.div) * self.dt)
     
+    @abstractmethod
+    def setup_parameters(self):
+        """Setting up parameters depending on whether option is a put or a call and European or American"""
+        raise NotImplementedError("NotImplementedError: Needs to be implemented")
 
 class BinomialEuropean(Option):
     """
@@ -90,6 +56,11 @@ class BinomialEuropean(Option):
         self.d = 1 - self.pd # Expected value in the down state
         self.qu = (math.exp((self.r - self.div) * self.dt) - self.d)/(self.u - self.d)
         self.qd = 1 - self.qu
+        # print(f"{self.M=}")
+        # print(f"{self.u=}")
+        # print(f"{self.d=}")
+        # print(f"{self.qu=}")
+        # print(f"{self.qd=}")
     
     def init_stock_price_tree(self):
         # Initialise terminal price nodes to zeros
@@ -98,14 +69,18 @@ class BinomialEuropean(Option):
         # Calculate expected stock prices for each node
         for i in range(self.M):
             self.StockTrees[i] = self.S0 * (self.u**(self.N - i)) * (self.d**i)
+            print(f"self.StockTrees[{i}] = {self.StockTrees[i]}")
     
     def init_payoffs_tree(self):
         """
         Returns the payoffs when the option expires at terminal nodes
         """
+        print(f"{self.is_call=}")
         if self.is_call:
+            print(f"{np.maximum(0, self.StockTrees - self.K) = }")
             return np.maximum(0, self.StockTrees - self.K)
         else:
+            print(f"{np.maximum(0, self.K - self.StockTrees) = }")
             return np.maximum(0, self.K - self.StockTrees)
     
     def traverse_tree(self, payoffs):
@@ -115,7 +90,7 @@ class BinomialEuropean(Option):
         """
         for _ in range(self.N):
             payoffs = (payoffs[:-1] * self.qu + payoffs[1:] * self.qd) * self.df
-        
+        print(f"{payoffs=}")
         return payoffs
     
     def begin_tree_traversal(self):
@@ -168,6 +143,7 @@ class BinomialTree(Option):
             return np.maximum(payoffs, self.K - self.StockTrees[node])
     
     def traverse_tree(self, payoffs):
+        print(f"{self.is_european = } ")
         for i in reversed(range(self.N)):
             # The payoffs from NOT exercising the option
             payoffs = (payoffs[:-1]*self.qu + payoffs[1:]*self.qd)*self.df
@@ -192,7 +168,7 @@ class BinomialTree(Option):
         # Option value converges to first node
         return payoffs[0]
 
-@dataclass
+
 class BinomialCRROption(BinomialTree):
     
     def setup_parameters(self):
@@ -204,6 +180,7 @@ class BinomialCRROption(BinomialTree):
 
 if __name__ == "__main__":
     eu_option = BinomialEuropean(50, 52, r=0.05, T=2, N=2, pu=0.2, pd=0.2, is_put=True)
+    # print(eu_option.__repr__())
     print(f"European put option price is: {eu_option.price()}")
     
     am_option = BinomialTree(50, 52, r=0.05, T=2, N=2, pu=0.2, pd=0.2, is_put=True, is_american=True)
