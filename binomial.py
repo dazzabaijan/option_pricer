@@ -44,65 +44,6 @@ class Option(ABC):
     def _define_u_and_d(self):
         """Setting up parameters depending on whether Binomial model is CRR or not."""
         raise NotImplementedError("NotImplementedError: Needs to be implemented")
-
-
-class BinomialEuropean(Option):
-    """
-    Price a European option by the binomial tree model
-    """
-    def setup_parameters(self):
-        # Required calculations for the model
-        self.M = self.N + 1 # Number of terminal nodes of tree
-        self.u = 1 + self.pu # Expected value in the up state
-        self.d = 1 - self.pd # Expected value in the down state
-        self.qu = (math.exp((self.r - self.div) * self.dt) - self.d)/(self.u - self.d)
-        self.qd = 1 - self.qu
-    
-    def init_stock_price_tree(self):
-        # Initialise terminal price nodes to zeros
-        self.StockTrees = np.zeros(self.M)
-        
-        # Calculate expected stock prices for each node
-        for i in range(self.M):
-            self.StockTrees[i] = self.S0 * (self.u**(self.N - i)) * (self.d**i)
-            print(f"self.StockTrees[{i}] = {self.StockTrees[i]}")
-    
-    def init_payoffs_tree(self):
-        """
-        Returns the payoffs when the option expires at terminal nodes
-        """
-        print(f"{self.is_call=}")
-        if self.is_call:
-            print(f"{np.maximum(0, self.StockTrees - self.K) = }")
-            return np.maximum(0, self.StockTrees - self.K)
-        else:
-            print(f"{np.maximum(0, self.K - self.StockTrees) = }")
-            return np.maximum(0, self.K - self.StockTrees)
-    
-    def traverse_tree(self, payoffs):
-        """
-        Starting from the time the option expires, traverse backwards
-        and calculate discounted payoffs at each node
-        """
-        for _ in range(self.N):
-            payoffs = (payoffs[:-1] * self.qu + payoffs[1:] * self.qd) * self.df
-        print(f"{payoffs=}")
-        return payoffs
-    
-    def begin_tree_traversal(self):
-        payoffs = self.init_payoffs_tree()
-        return self.traverse_tree(payoffs)
-    
-    def price(self):
-        """
-        Entry point of the pricing implementation
-        """
-        self.setup_parameters()
-        self.init_stock_price_tree()
-        payoffs = self.begin_tree_traversal()
-        
-        # Option value converges to first node
-        return payoffs[0]
     
 
 class BinomialTree(Option):
