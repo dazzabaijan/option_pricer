@@ -16,7 +16,7 @@ class Option(ABC):
     r: float = 0.05
     T: int = 1
     N: int = 2
-    StockTrees: List[float] = field(init=False, default_factory=list)
+    StockTrees: List[float] = field(init=False, repr=False, default_factory=list)
     pu: Optional[float] = 0
     pd: Optional[float] = 0
     div: Optional[float] = 0
@@ -41,9 +41,10 @@ class Option(ABC):
         return math.exp(-(self.r - self.div) * self.dt)
     
     @abstractmethod
-    def setup_parameters(self):
-        """Setting up parameters depending on whether option is a put or a call and European or American"""
+    def _define_u_and_d(self):
+        """Setting up parameters depending on whether Binomial model is CRR or not."""
         raise NotImplementedError("NotImplementedError: Needs to be implemented")
+
 
 class BinomialEuropean(Option):
     """
@@ -56,11 +57,6 @@ class BinomialEuropean(Option):
         self.d = 1 - self.pd # Expected value in the down state
         self.qu = (math.exp((self.r - self.div) * self.dt) - self.d)/(self.u - self.d)
         self.qd = 1 - self.qu
-        # print(f"{self.M=}")
-        # print(f"{self.u=}")
-        # print(f"{self.d=}")
-        # print(f"{self.qu=}")
-        # print(f"{self.qd=}")
     
     def init_stock_price_tree(self):
         # Initialise terminal price nodes to zeros
@@ -113,13 +109,21 @@ class BinomialTree(Option):
     """
     Price a American option by the binomial tree model
     """
-    def setup_parameters(self):
-        # Required calculations for the model
-        self.u = 1 + self.pu # Expected value in the up state
-        self.d = 1 - self.pd # Expected value in the down state
+    u: float = field(init=False)
+    d: float = field(init=False)
+    qu: float = field(init=False)
+    qd: float = field(init=False)
+    
+    def __post_init__(self):
+        super().__post_init__()
+        self._define_u_and_d()
         self.qu = (math.exp((self.r - self.div) * self.dt) - self.d)/(self.u - self.d)
         self.qd = 1 - self.qu
-
+    
+    def _define_u_and_d(self):
+        self.u = 1 + self.pu
+        self.d = 1 - self.pd
+    
     def init_stock_price_tree(self):
         # Initialise a 2D tree at T=0
         self.StockTrees = [np.array([self.S0])]
@@ -161,7 +165,7 @@ class BinomialTree(Option):
         """
         Entry point of the pricing implementation
         """
-        self.setup_parameters()
+        # self.setup_parameters()
         self.init_stock_price_tree()
         payoffs = self.begin_tree_traversal()
         
@@ -171,23 +175,33 @@ class BinomialTree(Option):
 
 class BinomialCRROption(BinomialTree):
     
-    def setup_parameters(self):
+    def __post_init__(self):
+        super().__post_init__()
+        self._define_u_and_d()
+        self.qu = (math.exp((self.r - self.div)*self.dt) - self.d)/(self.u - self.d)
+        self.qd = 1 - self.qu        
+    
+    def _define_u_and_d(self):
         self.u = math.exp(self.sigma * math.sqrt(self.dt))
         self.d = 1/self.u
-        self.qu = (math.exp((self.r - self.div)*self.dt) - self.d)/(self.u - self.d)
-        self.qd = 1 - self.qu
     
 
 if __name__ == "__main__":
-    eu_option = BinomialEuropean(50, 52, r=0.05, T=2, N=2, pu=0.2, pd=0.2, is_put=True)
-    # print(eu_option.__repr__())
-    print(f"European put option price is: {eu_option.price()}")
+    # eu_option = BinomialEuropean(50, 52, r=0.05, T=2, N=2, pu=0.2, pd=0.2, is_put=True)
+    # 
+    # print(f"European put option price is: {eu_option.price()}")
+    eu_option = BinomialTree(50, 52, r=0.05, T=2, N=2, pu=0.2, pd=0.2, is_put=True)
+    print(eu_option.__repr__())
+    print(f"Binomial Mode lEuropean put option price is: {eu_option.price()}")
     
     am_option = BinomialTree(50, 52, r=0.05, T=2, N=2, pu=0.2, pd=0.2, is_put=True, is_american=True)
-    print(f"American put option price is: {am_option.price()}")
+    print(am_option.__repr__())
+    print(f"Binomial Model American put option price is: {am_option.price()}")
     
-    eu_option2 = BinomialCRROption(50, 52, r=0.05, T=2, N=2, sigma=0.3, is_put=True)
-    print(f"European put: {eu_option2.price()}")
+    eu_option_crr = BinomialCRROption(50, 52, r=0.05, T=2, N=2, sigma=0.3, is_put=True)
+    print(eu_option_crr.__repr__())
+    print(f"CRR Binomial Model European put option price is: {eu_option_crr.price()}")
     
-    am_option2 = BinomialCRROption(50, 52, r=0.05, T=2, N=2, sigma=0.3, is_put=True, is_american=True)
-    print(f"American put option price is: {am_option2.price()}")
+    am_option_crr = BinomialCRROption(50, 52, r=0.05, T=2, N=2, sigma=0.3, is_put=True, is_american=True)
+    print(eu_option_crr.__repr__())
+    print(f"CRR Binomial Model American put option price is: {am_option_crr.price()}")
