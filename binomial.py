@@ -2,7 +2,7 @@ import math
 import numpy as np
 from decimal import Decimal
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, InitVar
 from typing import Optional, List
 
 
@@ -50,10 +50,6 @@ class BinomialTree(Option):
     """
     Price a American option by the binomial tree model
     """
-    u: float = field(init=False)
-    d: float = field(init=False)
-    qu: float = field(init=False)
-    qd: float = field(init=False)
     
     def __post_init__(self):
         super().__post_init__()
