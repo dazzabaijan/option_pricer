@@ -16,7 +16,6 @@ class Option(ABC):
     r: float = 0.05
     T: int = 1
     N: int = 2
-    StockTrees: List[float] = field(init=False, repr=False, default_factory=list)
     pu: Optional[float] = 0
     pd: Optional[float] = 0
     div: Optional[float] = 0
@@ -25,7 +24,25 @@ class Option(ABC):
     is_american: Optional[bool] = field(default=False)
     is_call: Optional[bool] = field(init=False)
     is_european: Optional[bool] = field(init=False)
+    StockTrees: List[float] = field(init=False, repr=False, default_factory=list)
+    """
+    Initialise the stock option base class.
+    Defaults to European calls unless specified.
     
+    Arg:
+        S0: Initial stock price
+        K: Strike price
+        r: Risk-free interest rate
+        T: Time to maturity
+        N: Number of time steps
+        pu: Probability at up state
+        pd: Probability at down state
+        sigma: 
+        div: Dividend yield
+        is_put: True for a put option, False for a call option
+        is_american: True for an American option, False for a European option
+    """
+
     def __post_init__(self):
         self.is_call = not self.is_put
         self.is_european = not self.is_american
