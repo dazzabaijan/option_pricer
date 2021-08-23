@@ -29,15 +29,17 @@ class Option(ABC):
     Initialise the stock option base class.
     Defaults to European calls unless specified.
     
-    Arg:
+    Args:
         S0: Initial stock price
         K: Strike price
         r: Risk-free interest rate
         T: Time to maturity
         N: Number of time steps
+    
+    Optional Args:
         pu: Probability at up state
         pd: Probability at down state
-        sigma: 
+        sigma: Volatility for CRR model
         div: Dividend yield
         is_put: True for a put option, False for a call option
         is_american: True for an American option, False for a European option
