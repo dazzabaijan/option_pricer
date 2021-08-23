@@ -110,8 +110,10 @@ class BinomialTree(Option):
         return payoffs[0]
 
 
-class BinomialCRROption(BinomialTree):
-    
+class BinomialCRR(BinomialTree):
+    """
+    Price a American option by the CRR binomial tree model
+    """    
     def __post_init__(self):
         super().__post_init__()
         self._define_u_and_d()
@@ -135,10 +137,10 @@ if __name__ == "__main__":
     print(am_option.__repr__())
     print(f"Binomial Model American put option price is: {am_option.price()}")
     
-    eu_option_crr = BinomialCRROption(50, 52, r=0.05, T=2, N=2, sigma=0.3, is_put=True)
+    eu_option_crr = BinomialCRR(50, 52, r=0.05, T=2, N=2, sigma=0.3, is_put=True)
     print(eu_option_crr.__repr__())
     print(f"CRR Binomial Model European put option price is: {eu_option_crr.price()}")
     
-    am_option_crr = BinomialCRROption(50, 52, r=0.05, T=2, N=2, sigma=0.3, is_put=True, is_american=True)
+    am_option_crr = BinomialCRR(50, 52, r=0.05, T=2, N=2, sigma=0.3, is_put=True, is_american=True)
     print(eu_option_crr.__repr__())
     print(f"CRR Binomial Model American put option price is: {am_option_crr.price()}")
