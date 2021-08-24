@@ -145,9 +145,6 @@ class BinomialCRR(BinomialTree):
     
 
 if __name__ == "__main__":
-    # eu_option = BinomialEuropean(50, 52, r=0.05, T=2, N=2, pu=0.2, pd=0.2, is_put=True)
-    # 
-    # print(f"European put option price is: {eu_option.price()}")
     eu_option = BinomialTree(50, 52, r=0.05, T=2, N=2, pu=0.2, pd=0.2, is_put=True)
     print(eu_option.__repr__())
     print(f"Binomial Mode lEuropean put option price is: {eu_option.price()}")
