@@ -1,7 +1,7 @@
 # Quantitative Finance Projects
 This repo contains all my quantitative finance related projects that I'm implementing in my free time.
 
-##Option Pricers
+## Option Pricers
 
 An option pricer library that encapsulates all the numerical option pricers that I will be implementing
 
@@ -15,7 +15,7 @@ To do:
   - Crank-Nicholson method of finite differences method for pricing European option
   - Longstaff-Schwartz method for pricing American options
   
-##Kalman Filter
+## Kalman Filter
 
 A Kalman filter to dynamically calculate the time-varying slope and intercept between two assets.
 To do:
