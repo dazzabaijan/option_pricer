@@ -12,7 +12,7 @@ To do:
   - Leisen-Reimer tree
   - Trinomial trees in option pricing
   - Explicit and Implicit finite differences method for pricing American and European options
-  - Crank-Nicholson method of finite differences method for pricing European option
+  - Crank-Nicholson finite differences method for pricing European options
   - Longstaff-Schwartz method for pricing American options
   
 ### Kalman Filter
