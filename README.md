@@ -18,5 +18,6 @@ To do:
 ### Kalman Filter
 
 A Kalman filter to dynamically calculate the time-varying slope and intercept between two assets.
+
 To do:
   - Implement a basic version of a Kalman filter from scratch using Numpy and Matplotlib. The rough idea is to take two closely related assets and perform linear regressions on them over time to dynamically estimate the gradient and intercept so as to determine how much of each asset to long and short at a particular threshold and hence determine the hedging ratio between the two assets, where one of them will be the "observed" variables.
